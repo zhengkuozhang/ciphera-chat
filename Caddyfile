@@ -1,0 +1,4 @@
+{$CHAT_DOMAIN} {
+    encode gzip
+    reverse_proxy chat:4173
+}

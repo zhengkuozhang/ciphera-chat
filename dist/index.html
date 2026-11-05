@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f2f3f5" />
+  <meta name="description" content="无需账号，使用密钥加入的加密聊天室。" />
+  <title>隐语聊天室</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <aside class="rail" aria-label="主导航">
+      <button class="brand-mark" aria-label="隐语首页">隐</button>
+      <nav class="rail-nav">
+        <button class="rail-btn active" data-view="chats" aria-label="会话"><span data-lucide="message-circle"></span></button>
+      </nav>
+      <div class="rail-footer">
+        <button class="rail-btn" id="theme-toggle" aria-label="切换主题"><span data-lucide="moon"></span></button>
+        <div class="avatar self" aria-label="本机身份"><span data-lucide="users"></span></div>
+      </div>
+    </aside>
+
+    <section class="inbox-panel">
+      <header class="inbox-header">
+        <div>
+
+          <h1>聊天室</h1>
+        </div>
+        <button class="icon-btn accent" id="new-chat" aria-label="新建会话"><span data-lucide="square-pen"></span></button>
+      </header>
+      <label class="search-box">
+        <span data-lucide="search"></span>
+        <input id="search-input" type="search" placeholder="搜索聊天室或消息" autocomplete="off" />
+        <kbd>⌘ K</kbd>
+      </label>
+      <div class="inbox-tabs" aria-label="筛选聊天室">
+        <button class="tab active" aria-pressed="true" data-filter="all">全部</button>
+        <button class="tab" aria-pressed="false" data-filter="admin">我管理的</button>
+        <button class="tab" aria-pressed="false" data-filter="member">我加入的</button>
+      </div>
+      <div class="conversation-list" id="conversation-list"></div>
+      <div class="storage-note">
+        <span data-lucide="key-round"></span>
+        <div><strong id="room-count">已加入 0 / 3 个聊天室</strong><small id="vault-status">正在连接服务…</small></div>
+      </div>
+    </section>
+
+    <main class="chat-panel">
+      <header class="chat-header">
+        <button class="mobile-back icon-btn" id="mobile-back" aria-label="返回会话列表"><span data-lucide="chevron-left"></span></button>
+        <div class="avatar-wrap"><div class="avatar contact" id="chat-avatar"><span data-lucide="users"></span></div></div>
+        <div class="chat-identity">
+          <h2 id="chat-name">选择或创建聊天室</h2>
+          <button id="security-status" class="security-label"><span data-lucide="lock-keyhole"></span> 密钥访问</button>
+        </div>
+        <div class="chat-actions">
+          <button class="icon-btn" id="chat-search" aria-label="搜索本会话"><span data-lucide="search"></span></button>
+          <button class="icon-btn" id="details-toggle" aria-label="会话详情"><span data-lucide="panel-right"></span></button>
+        </div>
+      </header>
+
+      <div class="message-search hidden" id="message-search" role="search" aria-label="搜索当前聊天记录">
+        <input id="message-search-input" type="search" placeholder="搜索当前聊天记录" aria-label="搜索当前聊天记录" autocomplete="off" />
+        <span id="message-search-count" aria-live="polite">输入关键词</span>
+        <button class="icon-btn" id="search-previous" aria-label="上一个结果"><span data-lucide="chevron-left"></span></button>
+        <button class="icon-btn" id="search-next" aria-label="下一个结果"><span data-lucide="chevron-right"></span></button>
+        <button class="icon-btn" id="search-close" aria-label="关闭消息搜索"><span data-lucide="x"></span></button>
+      </div>
+      <div id="storage-warning" class="connection-banner hidden" role="alert">本机保存失败。请保留此窗口，释放浏览器存储空间后继续操作；新建房间的密钥请妥善保存。</div>
+      <div id="connection-banner" class="connection-banner hidden" role="status">连接暂时中断，正在自动重连。未发送成功的消息可稍后重试。</div>
+      <section class="messages" id="messages" aria-label="聊天记录"></section>
+      <button id="latest-messages" class="latest-messages hidden" type="button">回到最新消息 ↓</button>
+
+      <footer class="composer-wrap">
+        <form class="composer" id="message-form">
+          <textarea id="message-input" rows="1" maxlength="2000" placeholder="输入消息" aria-label="消息内容"></textarea>
+          <button type="button" class="icon-btn ghost" id="timer-button" aria-label="设置消息保留时间"><span data-lucide="timer"></span></button>
+          <button type="submit" class="send-btn" id="send-button" aria-label="发送消息"><span data-lucide="arrow-up"></span></button>
+        </form>
+        <div class="composer-meta"><span><span data-lucide="lock-keyhole"></span> 已加密</span><span id="expiry-status">不自动删除</span></div>
+      </footer>
+    </main>
+
+    <aside class="details-panel" id="details-panel">
+      <header><h2>会话详情</h2><button class="icon-btn" id="details-close" aria-label="关闭详情"><span data-lucide="x"></span></button></header>
+      <div class="contact-card">
+        <div class="large-avatar" id="detail-avatar"><span data-lucide="users"></span></div>
+        <h3 id="detail-name">聊天室</h3>
+        <p id="detail-handle">0 位成员</p>
+      </div>
+      <div class="detail-section">
+        <button class="detail-row" id="manage-room"><span class="detail-icon safe"><span data-lucide="key-round"></span></span><span><strong>聊天室密钥</strong><small id="room-role-label">查看加入方式与权限</small></span><span data-lucide="chevron-right"></span></button>
+        <button class="detail-row" id="expiry-setting"><span class="detail-icon"><span data-lucide="timer-reset"></span></span><span><strong>消息保留时间</strong><small id="detail-expiry">不自动删除</small></span><span data-lucide="chevron-right"></span></button>
+      </div>
+      <div class="detail-section"><div class="section-title"><span>房间成员</span></div><div id="member-list" class="member-list"></div></div>
+      <div class="detail-section danger"><button class="detail-row" id="leave-room"><span data-lucide="log-out"></span><strong>退出这个聊天室</strong></button><button class="detail-row" id="clear-history"><span data-lucide="trash-2"></span><strong>清空本机记录</strong></button></div>
+    </aside>
+  </div>
+
+  <dialog id="expiry-dialog" class="modal compact" aria-labelledby="expiry-title">
+    <button class="modal-close" data-close-dialog aria-label="关闭"><span data-lucide="x"></span></button>
+    <p class="eyebrow">仅影响此设备接下来发送的消息</p><h2 id="expiry-title">消息保留时间</h2>
+    <p>从发送成功时开始计时。修改设置不会改变已发送消息，也无法删除成员自行保存的副本。</p>
+    <form id="expiry-form">
+      <fieldset class="expiry-options"><legend class="sr-only">选择保留时间</legend>
+        <label><input type="radio" name="expiry" value="0">不自动删除</label>
+        <label><input type="radio" name="expiry" value="30">30 秒</label>
+        <label><input type="radio" name="expiry" value="300">5 分钟</label>
+        <label><input type="radio" name="expiry" value="3600">1 小时</label>
+      </fieldset>
+      <button class="primary-btn" type="submit">保存设置</button>
+    </form>
+  </dialog>
+
+  <dialog id="new-chat-dialog" class="modal compact">
+    <button class="modal-close" data-close-dialog aria-label="关闭"><span data-lucide="x"></span></button>
+    <p class="eyebrow">聊天室入口</p><h2>创建或加入</h2>
+    <p>无需注册账号。创建者自动成为管理员，其他人凭密钥加入。</p>
+    <div class="entry-actions">
+      <button class="entry-card" id="choose-create"><span class="entry-icon"><span data-lucide="square-pen"></span></span><span><strong>创建聊天室</strong><small>创建后可分享密钥，邀请其他人</small></span><span data-lucide="chevron-right"></span></button>
+      <button class="entry-card" id="choose-join"><span class="entry-icon"><span data-lucide="key-round"></span></span><span><strong>使用密钥加入</strong><small>粘贴管理员发给你的聊天室密钥</small></span><span data-lucide="chevron-right"></span></button>
+    </div>
+  </dialog>
+
+  <dialog id="room-form-dialog" class="modal compact">
+    <button class="modal-close" data-close-dialog aria-label="关闭"><span data-lucide="x"></span></button>
+    <p class="eyebrow" id="room-form-kicker">创建聊天室</p><h2 id="room-form-title">创建聊天室</h2>
+    <form id="room-form" class="room-form">
+      <label><span>你在房间内的昵称</span><input id="nickname-input" maxlength="18" placeholder="输入昵称" required /></label>
+      <label id="room-name-field"><span>聊天室名称</span><input id="room-name-input" maxlength="24" placeholder="输入聊天室名称" /></label>
+      <label id="room-key-field" class="hidden"><span>聊天室密钥</span><textarea id="room-key-input" rows="3" placeholder="粘贴管理员分享的聊天室密钥" spellcheck="false" autocapitalize="off"></textarea></label>
+      <button class="primary-btn" type="submit" id="room-submit">生成密钥并创建</button>
+    </form>
+    <small class="hint">此浏览器最多同时加入 3 个聊天室</small>
+  </dialog>
+
+  <dialog id="room-key-dialog" class="modal">
+    <button class="modal-close" data-close-dialog aria-label="关闭"><span data-lucide="x"></span></button>
+    <div class="modal-icon"><span data-lucide="key-round"></span></div>
+    <p class="eyebrow" id="key-dialog-role">管理员密钥</p><h2 id="key-dialog-title">邀请成员</h2>
+    <p id="key-dialog-copy">把以下密钥通过可信渠道发给对方。任何持有者都能加入，请像保护密码一样保护它。</p>
+    <div class="room-secret" id="room-secret">••••••••••••••••</div>
+    <div class="key-actions"><button class="primary-btn" id="copy-key"><span data-lucide="copy"></span> 复制密钥</button><button class="secondary-btn" id="rotate-key"><span data-lucide="refresh-cw"></span> 更换邀请</button></div>
+    <div class="security-footnote"><span data-lucide="shield-alert"></span><span>更换邀请密钥后，旧邀请不能再加入。已加入成员仍能读取已有房间密钥加密的消息。</span></div>
+  </dialog>
+
+  <dialog id="admission-recovery-dialog" class="modal compact" aria-labelledby="admission-recovery-title">
+    <button class="modal-close" data-close-dialog aria-label="关闭"><span data-lucide="x"></span></button>
+    <h2 id="admission-recovery-title">确认房间请求</h2>
+    <p>暂时未能确认创建或加入结果。请求和密钥已保存在本机；请恢复连接后重试，系统会核对原请求，避免重复创建。刷新后也会继续恢复。</p>
+    <button class="primary-btn" id="retry-admission">重试原请求</button>
+  </dialog>
+
+  <dialog id="workspace-busy-dialog" class="modal compact" aria-labelledby="workspace-busy-title">
+    <h2 id="workspace-busy-title">聊天室已在其他窗口打开</h2>
+    <p>为避免草稿和本机记录互相覆盖，请在原窗口继续使用，或关闭原窗口后点击下方按钮。</p>
+    <button class="primary-btn" id="retry-workspace">重新打开</button>
+  </dialog>
+  <dialog id="startup-error-dialog" class="modal compact" aria-labelledby="startup-error-title">
+    <h2 id="startup-error-title">暂时无法打开本机记录</h2>
+    <p id="startup-error-description"></p><p>请保留浏览器数据，稍后重试。</p>
+    <button class="primary-btn" id="retry-startup">重新加载</button>
+  </dialog>
+
+  <dialog id="confirm-dialog" class="modal compact" aria-labelledby="confirm-title" aria-describedby="confirm-description">
+    <h2 id="confirm-title"></h2><p id="confirm-description"></p>
+    <form method="dialog" class="confirm-actions">
+      <button class="secondary-btn" value="cancel" autofocus>取消</button>
+      <button class="primary-btn danger-btn" id="confirm-submit" value="confirm">确认</button>
+    </form>
+  </dialog>
+
+  <dialog id="welcome-dialog" class="modal welcome-modal">
+    <h2>欢迎使用隐语</h2>
+    <p>创建聊天室后，把密钥发给朋友就能一起聊天。已有密钥，可以直接加入。无需注册账号。</p>
+
+    <div class="welcome-actions"><button class="primary-btn" id="welcome-create">创建聊天室</button><button class="secondary-btn" id="welcome-join">使用密钥加入</button></div>
+  </dialog>
+
+  <div class="toast-region" id="toast-region" aria-live="assertive"></div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

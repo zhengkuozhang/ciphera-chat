@@ -1,0 +1,30 @@
+services:
+  chat:
+    build: .
+    restart: unless-stopped
+    environment:
+      DATABASE_PATH: /app/data/${CHAT_DATABASE_FILE:-chat.sqlite}
+    volumes:
+      - chat-data:/app/data
+    expose:
+      - "4173"
+  https:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      CHAT_DOMAIN: ${CHAT_DOMAIN:?Set CHAT_DOMAIN to your domain}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      chat:
+        condition: service_healthy
+volumes:
+  chat-data:
+  caddy-data:
+  caddy-config:
